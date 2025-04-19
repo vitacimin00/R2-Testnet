@@ -17,7 +17,7 @@ Fitur-Fitur Utama:
 
 Cara Menggunakan:
 ```
-git clone
+git clone https://github.com/AirdropFamilyIDN-V2-0/R2-Testnet.git
 ```
 ```
 cd R2-Testnet
@@ -34,4 +34,4 @@ Jalankan skrip:
 ```
 python bot.py
 ```
-Join AirDropFamilyIDN 
+Join AirDropFamilyIDN  https://t.me/AirdropFamilyIDN
