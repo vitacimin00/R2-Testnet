@@ -28,7 +28,7 @@ Instal dependensi yang dibutuhkan:
 pip install web3 requests rich
 ```
 Atur private key di 
-# data.txt
+# pk.txt
 
 Jalankan skrip:
 ```
