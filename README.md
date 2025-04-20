@@ -1,4 +1,4 @@
-# R2-Testnet
+# R2-Testnet Mulri Akun
 ![image](https://github.com/user-attachments/assets/e9dcfa68-ea77-4508-aa1a-ca27972fdba8)
 
 R2 Testnet Automation Bot
