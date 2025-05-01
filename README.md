@@ -1,4 +1,4 @@
-# R2-Testnet Mulri Akun
+# R2-Testnet Multi Akun
 ![image](https://github.com/user-attachments/assets/e9dcfa68-ea77-4508-aa1a-ca27972fdba8)
 
 R2 Testnet Automation Bot
@@ -14,6 +14,9 @@ Fitur-Fitur Utama:
 ⏱ Delay Antar Aksi untuk memastikan proses dilakukan dengan lancar dan menghindari spam pada jaringan.
 
 🔐 Penanganan Private Key secara aman untuk berinteraksi dengan wallet tanpa mengungkapkan private key secara langsung.
+
+## REGISTER
+- https://r2.money?code=KJZPG
 
 Cara Menggunakan:
 ```
