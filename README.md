@@ -1,5 +1,6 @@
 # R2-Testnet Multi Akun
-![image](https://github.com/user-attachments/assets/e9dcfa68-ea77-4508-aa1a-ca27972fdba8)
+![image](https://github.com/user-attachments/assets/4f947772-b745-4454-9f7b-6c27c9a67b3f)
+
 
 R2 Testnet Automation Bot
 🚀 R2 Testnet Auto: Bot yang dirancang untuk mengotomatisasi tugas-tugas di R2 Testnet. Bot ini berinteraksi dengan ekosistem R2 dengan melakukan tindakan seperti persetujuan token, staking, swapping, dan menambah liquidity, berdasarkan kredensial dompet yang diberikan.
