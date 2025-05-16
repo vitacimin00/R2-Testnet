@@ -23,7 +23,7 @@
     },
     "plum_testnet": {
         "name": "Plume Testnet",
-        "chainId": 0,
+        "chainId": 98867,
         "rpcUrl": "https://testnet-rpc.plumenetwork.xyz/",
         "contracts": {
             "USDC": "0xef84994eF411c4981328fFcE5Fda41cD3803faE4",
@@ -34,7 +34,7 @@
     },
     "monad_testnet": {
         "name": "Monad Testnet",
-        "chainId": 0,
+        "chainId": 10143,
         "rpcUrl": "https://testnet-rpc.monad.xyz/",
         "contracts": {
             "USDC": "0xef84994eF411c4981328fFcE5Fda41cD3803faE4",
