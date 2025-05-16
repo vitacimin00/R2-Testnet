@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 import json
 from decimal import Decimal
 from web3 import Web3
@@ -8,49 +9,46 @@ from rich.panel import Panel
 from rich.table import Table
 from rich import box
 
+# Global placeholders for Web3 and chainId
+web3 = None
+chainId = None
+
 console = Console()
 console.print(Panel.fit(
     "[bold cyan]🚀 R2 Testnet Auto\n[green]By ADFMIND TEAM[/green]\n[link=https://t.me/AirdropFamilyIDN]Join Telegram[/link]",
     title="🔥 Welcome",
     subtitle="Testnet Tools"))
 
+# Load network config
 with open("network_config.json") as f:
     network_config = json.load(f)
 
-console.print("\n[bold blue]Pilih jaringan yang akan digunakan:[/bold blue]")
-for i, net in enumerate(network_config.keys()):
-    console.print(f"[{i}] {network_config[net]['name']}")
+networks_to_run = list(network_config.items())
 
-selected_index = int(console.input("\n[bold green]Masukkan nomor jaringan: [/bold green]"))
-selected_network = list(network_config.keys())[selected_index]
-netconf = network_config[selected_network]
-
-web3 = Web3(Web3.HTTPProvider(netconf["rpcUrl"]))
-chainId = netconf["chainId"]
-
-if web3.is_connected():
-    console.print(f"✅ [green]Connected to {netconf['name']}[/green]\n")
-else:
-    console.print(f"❌ [red]Gagal konek ke jaringan {netconf['name']}[/red]")
-    exit()
-
-
+# Load ABI
 with open("tokenabi.json") as f:
     tokenabi = json.load(f)
 
 def getNonce(sender): return int(web3.eth.get_transaction_count(sender))
 def getgasPrice(): return int(web3.eth.gas_price * Decimal(1.1))
 
-def show_status(title, sender, target, status, tx=None):
+def show_status(title, sender, target, status, tx=None, gas_fee=None):
     table = Table(title=title, box=box.ROUNDED)
     table.add_column("From", justify="center")
     table.add_column("To", justify="center")
     table.add_column("Status", justify="center")
+    
     if tx:
         table.add_column("TX-ID", justify="center")
+    if gas_fee is not None:
+        table.add_column("Gas Fee (Native)", justify="center")
+
     row = [sender[-6:], target[-6:], status]
     if tx:
         row.append(tx)
+    if gas_fee is not None:
+        row.append(f"{gas_fee:.6f}")
+        
     table.add_row(*row)
     console.print(table)
 
@@ -77,8 +75,14 @@ def approveTokens(tokenaddr, targetaddr, sender, senderkey):
 
 def tx_process(title, sender, target, tx_hash, totalamount):
     console.print(f"⏳ [cyan]{title} {totalamount} RUSD...[/cyan]")
-    web3.eth.wait_for_transaction_receipt(tx_hash)
-    show_status(f"✅ {title} Success", sender, target, "[green]Success[/green]", web3.to_hex(tx_hash))
+
+    receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+    gas_used = receipt.gasUsed
+    tx_detail = web3.eth.get_transaction(tx_hash)
+    gas_price = tx_detail.gasPrice
+    fee_native = web3.from_wei(gas_used * gas_price, 'ether')
+
+    show_status(f"✅ {title} Success", sender, target, "[green]Success[/green]", web3.to_hex(tx_hash), fee_native)
 
 def buyRUSD(addrtarget, sender, senderkey, amount):
     try:
@@ -145,7 +149,8 @@ def addLiquidity(addrtarget, sender, senderkey, amount):
         show_status("❌ Liquidity Error", sender, addrtarget, f"[red]{str(e)}[/red]")
 
 def run_actions():
-    amount = int(5 * 10**6)
+    amount = int(5 * 10**6)  # jumlah USDC per aksi
+    repeat = 1  # jumlah pengulangan tiap aksi per wallet
 
     try:
         with open("pk.txt", "r") as f:
@@ -167,33 +172,65 @@ def run_actions():
             sRUSD = web3.to_checksum_address('0xBD6b25c4132F09369C354beE0f7be777D7d434fa')
             liquidity = web3.to_checksum_address('0xF64a77f6e57d9fEeFd2E8fEDbd0032798dAC21Fa')
 
+            # Approve hanya dilakukan sekali per token per kontrak tujuan
             if apprvCheck(USDC, sender_address, rUSD) < amount:
                 approveTokens(USDC, rUSD, sender_address, sender_key)
-            buyRUSD(rUSD, sender_address, sender_key, amount)
-            time.sleep(10)
-
             if apprvCheck(rUSD, sender_address, sRUSD) < amount:
                 approveTokens(rUSD, sRUSD, sender_address, sender_key)
-            stakesRUSD(sRUSD, sender_address, sender_key, amount)
-            time.sleep(10)
-
             if apprvCheck(rUSD, sender_address, liquidity) < amount:
                 approveTokens(rUSD, liquidity, sender_address, sender_key)
             if apprvCheck(sRUSD, sender_address, liquidity) < amount:
                 approveTokens(sRUSD, liquidity, sender_address, sender_key)
-            addLiquidity(liquidity, sender_address, sender_key, amount)
 
-            console.print(f"[cyan]✅ Semua langkah selesai untuk wallet #{index} ({sender_address[-6:]})[/cyan]")
-            time.sleep(15) 
+            for i in range(repeat):
+                console.print(f"[blue]🔁 Loop {i+1}/{repeat} untuk {sender_address[-6:]}[/blue]")
+                
+                buyRUSD(rUSD, sender_address, sender_key, amount)
+                time.sleep(10)
+
+                stakesRUSD(sRUSD, sender_address, sender_key, amount)
+                time.sleep(10)
+
+                addLiquidity(liquidity, sender_address, sender_key, amount)
+                time.sleep(15)
+
+            console.print(f"[cyan]✅ Semua loop selesai untuk wallet #{index} ({sender_address[-6:]})[/cyan]")
+            time.sleep(15)
 
         except Exception as e:
             console.print(f"[red]❌ Gagal memproses wallet #{index}: {e}[/red]")
 
+def countdown(seconds):
+    while seconds > 0:
+        mins, secs = divmod(seconds, 60)
+        hrs, mins = divmod(mins, 60)
+        timer = f"{hrs:02d}:{mins:02d}:{secs:02d}"
+        tanggal = datetime.now().strftime("%d/%m/%Y")
+        console.print(f"📅 {tanggal} ⏳ Menunggu sebelum ulang semua jaringan: {timer}", end="\r")
+        time.sleep(1)
+        seconds -= 1
+    print()  # supaya pindah baris setelah countdown selesai
+
 def main_loop():
     while True:
-        run_actions()
-        console.print("[yellow]🕒 Menunggu 24 jam sebelum lanjut...[/yellow]")
-        time.sleep(86400) 
+        for network_key, netconf in networks_to_run:
+            try:
+                web3_local = Web3(Web3.HTTPProvider(netconf["rpcUrl"]))
+                if not web3_local.is_connected():
+                    console.print(f"❌ [red]Gagal konek ke jaringan {netconf['name']}[/red]")
+                    continue
+
+                global web3, chainId
+                web3 = web3_local
+                chainId = netconf["chainId"]
+
+                console.print(f"\n\n[bold cyan]🔗 Jaringan: {netconf['name']} (Chain ID: {chainId})[/bold cyan]")
+                run_actions()
+            except Exception as e:
+                console.print(f"[red]❌ Error di jaringan {netconf['name']}: {e}[/red]")
+
+        # Log countdown 12 jam
+        countdown(43200)  # 12 jam = 43200 detik
 
 if __name__ == "__main__":
     main_loop()
